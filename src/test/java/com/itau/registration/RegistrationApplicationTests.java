@@ -1,13 +1,13 @@
 package com.itau.registration;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.SpringApplication;
 
-@SpringBootTest
-class RegistrationApplicationTests {
+class RegistrationApplicationMainTest {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {
+        String[] args = {};
+        RegistrationApplication.main(args);
+    }
 }
