@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: ''
+          distribution: 'temurin'
 
       - name: Compile and run tests
         run: |
