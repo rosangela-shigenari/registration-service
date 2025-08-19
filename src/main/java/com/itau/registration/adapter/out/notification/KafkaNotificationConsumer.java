@@ -3,6 +3,7 @@ package com.itau.registration.adapter.out.notification;
 import com.itau.registration.adapter.out.model.RegistrationCreatedEvent;
 import com.itau.registration.adapter.out.persistence.RegistrationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -15,14 +16,15 @@ public class KafkaNotificationConsumer {
     private final RegistrationRepository registrationRepository;
     private final EmailService emailService;
 
-    private static final long DELAY_MILLIS = 2 * 60 * 1000;
+    @Value("${kafka.delay.millis:120000}")
+    private long delayMillis;
 
     @KafkaListener(topics = "notification", groupId = "notification-group")
     public void consume(RegistrationCreatedEvent event) throws InterruptedException {
         long elapsed = Duration.between(event.getCreatedAt(), LocalDateTime.now()).toMillis();
 
-        if (elapsed < DELAY_MILLIS) {
-            Thread.sleep(DELAY_MILLIS - elapsed);
+        if (elapsed < delayMillis) {
+            Thread.sleep(delayMillis - elapsed);
         }
 
         emailService.sendRegistrationNotification(event.getRegistrationId(), event.getEmail());

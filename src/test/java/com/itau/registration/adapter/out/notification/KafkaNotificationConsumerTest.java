@@ -11,6 +11,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -18,7 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(properties = {"kafka.delay.millis=1"})
 class KafkaNotificationConsumerTest {
 
     @Mock
@@ -80,6 +82,9 @@ class KafkaNotificationConsumerTest {
     @Test
     @DisplayName("Should wait if event is too recent")
     void testConsumeWithRecentEvent() throws InterruptedException {
+
+        ReflectionTestUtils.setField(consumer, "delayMillis", 3);
+
         RegistrationCreatedEvent recentEvent = new RegistrationCreatedEvent(
                 2L,
                 "recent@email.com",
