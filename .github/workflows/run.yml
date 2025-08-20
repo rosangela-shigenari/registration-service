@@ -83,12 +83,19 @@ jobs:
           }
           EOF
           
-      - name: Register task definition
-        run: aws ecs register-task-definition --cli-input-json file://taskdef_rendered.json
+      - name: Register ECS task definition
+        id: register-task
+        run: |
+            TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://taskdef_rendered.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+            echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
-      - name: Update ECS service with new image
+      - name: Update ECS service with new task definition
         run: |
             aws ecs update-service \
-              --cluster $ECS_CLUSTER \
-              --service $ECS_SERVICE \
-              --force-new-deployment
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --task-definition $TASK_DEF_ARN \
+            --force-new-deployment
