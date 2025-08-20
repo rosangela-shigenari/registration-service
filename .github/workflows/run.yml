@@ -56,11 +56,11 @@ jobs:
 
       - name: Update ECS service with latest task definition
         run: |
-            # Get the latest ACTIVE revision ARN for the task definition family
             TASK_DEF_ARN=$(aws ecs describe-task-definition \
               --task-definition registration-dev-task \
               --query 'taskDefinition.taskDefinitionArn' \
               --output text)
+            echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
       - name: Update ECS service with task definition
         run: |
