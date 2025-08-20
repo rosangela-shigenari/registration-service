@@ -10,9 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      ECR_REPOSITORY: registration-dev-repo
       ECS_CLUSTER: registration-dev-cluster
       ECS_SERVICE: registration-dev-svc
+      AWS_REGION: us-east-1
       IMAGE_TAG: ${{ github.sha }}
 
     steps:
@@ -27,14 +28,14 @@ jobs:
 
       - name: Compile and run tests
         run: |
-          gradle clean build
+          ./gradlew clean build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: $AWS_REGION
 
       - name: Login to Amazon ECR
         id: login-ecr
