@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      ECR_REPOSITORY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/registration-dev-repo
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
       ECS_CLUSTER: registration-dev-cluster
       ECS_SERVICE: registration-dev-svc
       IMAGE_TAG: ${{ github.sha }}
