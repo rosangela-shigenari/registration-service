@@ -48,13 +48,13 @@ jobs:
 
       - name: Tag Docker image
         run: |
-          docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:lastest
 
       - name: Push Docker image to ECR
         run: |
-          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:lastest
 
-      - name: Update ECS service with latest task definition
+      - name: Get lastest task definition
         run: |
             TASK_DEF_ARN=$(aws ecs describe-task-definition \
               --task-definition registration-dev-task \
@@ -62,7 +62,7 @@ jobs:
               --output text)
             echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
-      - name: Update ECS service with task definition
+      - name: Update ECS service
         run: |
           aws ecs update-service \
             --cluster $ECS_CLUSTER \
