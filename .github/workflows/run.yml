@@ -53,9 +53,38 @@ jobs:
         run: |
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Register task definition
+      - name: Create ECS taskdef JSON
         run: |
-            aws ecs register-task-definition --cli-input-json file://taskdef_rendered.json
+          cat > taskdef_rendered.json <<EOF
+          {
+            "family": "registration-service",
+            "networkMode": "awsvpc",
+            "requiresCompatibilities": ["FARGATE"],
+            "cpu": "512",
+            "memory": "1024",
+            "executionRoleArn": "arn:aws:iam::$AWS_ACCOUNT_ID:role/ecsTaskExecutionRole",
+            "taskRoleArn": "arn:aws:iam::$AWS_ACCOUNT_ID:role/ecsTaskExecutionRole",
+            "containerDefinitions": [
+              {
+                "name": "registration-service",
+                "image": "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG",
+                "essential": true,
+                "portMappings": [{"containerPort": 8080, "protocol": "tcp"}],
+                "logConfiguration": {
+                  "logDriver": "awslogs",
+                  "options": {
+                    "awslogs-group": "/ecs/registration-service",
+                    "awslogs-region": "$AWS_REGION",
+                    "awslogs-stream-prefix": "ecs"
+                  }
+                }
+              }
+            ]
+          }
+          EOF
+          
+      - name: Register task definition
+        run: aws ecs register-task-definition --cli-input-json file://taskdef_rendered.json
 
       - name: Update ECS service with new image
         run: |
