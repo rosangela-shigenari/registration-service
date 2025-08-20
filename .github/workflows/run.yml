@@ -44,11 +44,11 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REPOSITORY:lastest .
 
       - name: Tag Docker image
         run: |
-          docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:lastest
+          docker tag $ECR_REPOSITORY:lastest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:lastest
 
       - name: Push Docker image to ECR
         run: |
