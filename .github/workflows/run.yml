@@ -57,7 +57,7 @@ jobs:
         run: |
           cat > taskdef_rendered.json <<EOF
           {
-            "family": "registration-service",
+            "family": "registration-dev-task",
             "networkMode": "awsvpc",
             "requiresCompatibilities": ["FARGATE"],
             "cpu": "512",
