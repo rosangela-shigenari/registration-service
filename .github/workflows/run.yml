@@ -53,10 +53,13 @@ jobs:
         run: |
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
+      - name: Register task definition
+        run: |
+            aws ecs register-task-definition --cli-input-json file://taskdef_rendered.json
+
       - name: Update ECS service with new image
         run: |
-          aws ecs update-service \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
-            --force-new-deployment \
-            --region $AWS_REGION
+            aws ecs update-service \
+              --cluster $ECS_CLUSTER \
+              --service $ECS_SERVICE \
+              --force-new-deployment
