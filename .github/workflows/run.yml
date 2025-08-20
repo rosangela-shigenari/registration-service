@@ -27,7 +27,7 @@ jobs:
 
       - name: Compile and run tests
         run: |
-          gradle clean install
+          gradle clean build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
