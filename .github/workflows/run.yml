@@ -13,6 +13,7 @@ jobs:
       ECR_REPOSITORY: registration-dev-repo
       ECS_CLUSTER: registration-dev-cluster
       ECS_SERVICE: registration-dev-svc
+      ECS_TASK_DEF: registration-dev-task
       AWS_REGION: us-east-1
       IMAGE_TAG: ${{ github.sha }}
 
@@ -53,49 +54,31 @@ jobs:
         run: |
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Create ECS taskdef JSON
+      - name: Get lastest task definition
         run: |
-          cat > taskdef_rendered.json <<EOF
-          {
-            "family": "registration-dev-task",
-            "networkMode": "awsvpc",
-            "requiresCompatibilities": ["FARGATE"],
-            "cpu": "512",
-            "memory": "1024",
-            "executionRoleArn": "arn:aws:iam::$AWS_ACCOUNT_ID:role/ecsTaskExecutionRole",
-            "taskRoleArn": "arn:aws:iam::$AWS_ACCOUNT_ID:role/ecsTaskExecutionRole",
-            "containerDefinitions": [
-              {
-                "name": "registration-service",
-                "image": "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG",
-                "essential": true,
-                "portMappings": [{"containerPort": 8080, "hostPort": 8080, "protocol": "tcp"}],
-                "logConfiguration": {
-                  "logDriver": "awslogs",
-                  "options": {
-                    "awslogs-group": "/ecs/registration-service",
-                    "awslogs-region": "$AWS_REGION",
-                    "awslogs-stream-prefix": "ecs"
-                  } 
-                }
-              }
-            ]
-          }
-          EOF
-          
-      - name: Register ECS task definition
+            TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition $ECS_TASK_DEF \
+            --query taskDefinition \
+            --output json)
+            
+            NEW_TASK_DEF=$(echo $TASK_DEF | jq --arg IMAGE "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG" \
+            '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+            
+            echo "$NEW_TASK_DEF" > taskdef_rendered.json
+
+      - name: Register new revision
         id: register-task
         run: |
-            TASK_DEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://taskdef_rendered.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)
-            echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
+              TASK_DEF_ARN=$(aws ecs register-task-definition \
+                --cli-input-json file://taskdef_rendered.json \
+                --query 'taskDefinition.taskDefinitionArn' \
+                --output text)
+              echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
 
       - name: Update ECS service with new task definition
         run: |
-            aws ecs update-service \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
-            --task-definition $TASK_DEF_ARN \
-            --force-new-deployment
+          aws ecs update-service \
+                --cluster $ECS_CLUSTER \
+                --service $ECS_SERVICE \
+                --task-definition $TASK_DEF_ARN \
+                --force-new-deployment
