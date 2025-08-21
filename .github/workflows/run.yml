@@ -26,11 +26,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.6.3
 
       - name: Compile and run tests
         run: |
@@ -47,16 +42,10 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Docker image
+      - name: Build and tag Docker image
         run: |
           docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
           docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-
-      - name: Apply Terraform
-        run: |
-          terraform apply -auto-approve \
-            -var="image_tag=$IMAGE_TAG"
 
       - name: Push Docker image to ECR
         run: |
