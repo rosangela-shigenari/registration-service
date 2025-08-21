@@ -54,7 +54,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     public List<RegistrationResponse> getAllRegistrations() {
         return registrationRepository.findAll()
                 .stream()
-                .map(reg -> mapToResponse(reg, "All registrations retrieved."))
+                .map(reg -> mapToResponse(reg, reg.getStatus()))
                 .collect(Collectors.toList());
     }
 
