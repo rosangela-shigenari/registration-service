@@ -1,0 +1,55 @@
+name: Build, containerize, deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build & Test
+        run: ./gradlew clean build
+
+  containerize:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Login ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build & Push Docker
+        run: |
+          docker build -t myrepo:${{ github.sha }} .
+          docker tag myrepo:${{ github.sha }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myrepo:${{ github.sha }}
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myrepo:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: containerize
+    steps:
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Update ECS
+        run: |
+          TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition registration-dev-task --query 'taskDefinition.taskDefinitionArn' --output text)
+          aws ecs update-service --cluster registration-dev-cluster --service registration-dev-svc --task-definition $TASK_DEF_ARN --force-new-deployment
