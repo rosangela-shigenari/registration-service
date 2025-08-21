@@ -1,6 +1,5 @@
 package com.itau.registration.adapter.in;
 
-import com.itau.registration.application.dto.RegistrationRequest;
 import com.itau.registration.application.service.RegistrationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +39,7 @@ class GlobalExceptionHandlerTest {
             }
             """;
 
-        mockMvc.perform(post("/registration")
+        mockMvc.perform(post("/registrations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isBadRequest())
@@ -53,7 +52,7 @@ class GlobalExceptionHandlerTest {
         when(registrationService.deleteRegistration(1L))
                 .thenThrow(new RuntimeException("Generic error"));
 
-        mockMvc.perform(delete("/registration/1")
+        mockMvc.perform(delete("/registrations/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.message").value("Generic error"));
@@ -74,7 +73,7 @@ class GlobalExceptionHandlerTest {
         when(registrationService.createRegistration(any()))
                 .thenThrow(new DataIntegrityViolationException(""));
 
-        mockMvc.perform(post("/registration")
+        mockMvc.perform(post("/registrations")
                         .content(payload)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isConflict())

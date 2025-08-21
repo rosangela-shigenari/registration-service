@@ -11,9 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -62,7 +60,7 @@ class RegistrationControllerTest {
 
         assertThat(result.getStatusCode().value()).isEqualTo(201);
         assertThat(result.getBody()).isNotNull();
-        assertThat(result.getBody().getMessage()).isEqualTo("Created successfully");
+        assertThat(result.getBody().getMessage()).isEqualTo("Success");
     }
 
     // ---------------------- GET ----------------------
@@ -73,11 +71,11 @@ class RegistrationControllerTest {
 
         when(registrationService.getRegistration(1L)).thenReturn(Optional.of(response));
 
-        ResponseEntity<RegistrationResponse> result = registrationController.getRegistration(1L);
+        ResponseEntity<List<RegistrationResponse>> result = registrationController.listRegistrations(1L);
 
         assertThat(result.getStatusCode().value()).isEqualTo(200);
         assertThat(result.getBody()).isNotNull();
-        assertThat(result.getBody().getMessage()).isEqualTo("Success");
+        assertThat(result.getBody().get(0).getMessage()).isEqualTo("Success");
     }
 
     @Test
@@ -85,7 +83,7 @@ class RegistrationControllerTest {
     void testGetRegistrationNotFound() {
         when(registrationService.getRegistration(99L)).thenReturn(Optional.empty());
 
-        ResponseEntity<RegistrationResponse> result = registrationController.getRegistration(99L);
+        ResponseEntity<List<RegistrationResponse>> result = registrationController.listRegistrations(99L);
 
         assertThat(result.getStatusCode().value()).isEqualTo(204);
         assertThat(result.getBody()).isNull();
@@ -102,7 +100,7 @@ class RegistrationControllerTest {
 
         when(registrationService.getAllRegistrations()).thenReturn(responses);
 
-        ResponseEntity<List<RegistrationResponse>> result = registrationController.listAllRegistrations();
+        ResponseEntity<List<RegistrationResponse>> result = registrationController.listRegistrations(null);
 
         assertThat(result.getStatusCode().value()).isEqualTo(200);
         assertThat(result.getBody()).hasSize(2);
@@ -114,11 +112,9 @@ class RegistrationControllerTest {
     void testListRegistrationsEmpty() {
         when(registrationService.getAllRegistrations()).thenReturn(List.of());
 
-        ResponseEntity<List<RegistrationResponse>> result = registrationController.listAllRegistrations();
+        ResponseEntity<List<RegistrationResponse>> result = registrationController.listRegistrations(null);
 
         assertThat(result.getStatusCode().value()).isEqualTo(204);
-        assertThat(result.getBody()).isNotNull();
-        assertThat(result.getBody().get(0).getMessage()).isEqualTo("No registration found");
     }
 
 
