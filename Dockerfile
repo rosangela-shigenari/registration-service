@@ -14,6 +14,8 @@ FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
+COPY startup.sh /app/startup.sh
+RUN chmod +x /app/startup.sh
 
 EXPOSE 8080
 
