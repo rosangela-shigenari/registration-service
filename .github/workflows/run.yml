@@ -35,9 +35,11 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Build & Push Docker
         run: |
-          docker build -t myrepo:${{ github.sha }} .
-          docker tag myrepo:${{ github.sha }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myrepo:${{ github.sha }}
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/myrepo:${{ github.sha }}
+          docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -51,5 +53,13 @@ jobs:
           aws-region: us-east-1
       - name: Update ECS
         run: |
-          TASK_DEF_ARN=$(aws ecs describe-task-definition --task-definition registration-dev-task --query 'taskDefinition.taskDefinitionArn' --output text)
-          aws ecs update-service --cluster registration-dev-cluster --service registration-dev-svc --task-definition $TASK_DEF_ARN --force-new-deployment
+          TASK_DEF_ARN=$(aws ecs describe-task-definition \
+              --task-definition registration-dev-task \
+              --query 'taskDefinition.taskDefinitionArn' \
+              --output text)
+            echo "TASK_DEF_ARN=$TASK_DEF_ARN" >> $GITHUB_ENV
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --task-definition $TASK_DEF_ARN \
+            --force-new-deployment
