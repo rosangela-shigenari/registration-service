@@ -11,6 +11,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.time.LocalDateTime;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
@@ -35,7 +37,7 @@ class KafkaNotificationPublisherTest {
     @Test
     @DisplayName("Should publish registration created event to Kafka")
     void testPublishRegistrationCreatedEvent() {
-        publisher.publishRegistrationCreatedEvent(registrationId, email);
+        publisher.publishRegistrationCreatedEvent(registrationId, email, LocalDateTime.now());
 
         ArgumentCaptor<RegistrationCreatedEvent> eventCaptor = ArgumentCaptor.forClass(RegistrationCreatedEvent.class);
         ArgumentCaptor<String> topicCaptor = ArgumentCaptor.forClass(String.class);

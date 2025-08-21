@@ -56,7 +56,7 @@ class RegistrationServiceImplTest {
         assertEquals("New registration is processing.", response.getMessage());
 
         verify(registrationRepository, times(1)).save(any(Registration.class));
-        verify(notificationPublisher, times(1)).publishRegistrationCreatedEvent(1L, "rosangela@gmail.com");
+        verify(notificationPublisher, times(1)).publishRegistrationCreatedEvent(1L, "rosangela@gmail.com", saved.getCreatedAt());
     }
 
     @Test

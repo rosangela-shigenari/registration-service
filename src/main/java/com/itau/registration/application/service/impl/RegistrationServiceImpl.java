@@ -37,7 +37,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         Registration saved = registrationRepository.save(registration);
 
-        notificationPublisher.publishRegistrationCreatedEvent(saved.getId(), saved.getEmail());
+        notificationPublisher.publishRegistrationCreatedEvent(saved.getId(), saved.getEmail(), saved.getCreatedAt());
 
         return mapToResponse(saved, "New registration is processing.");
     }

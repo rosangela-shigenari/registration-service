@@ -19,7 +19,7 @@ public class KafkaNotificationConsumer {
     @Value("${kafka.delay.millis:120000}")
     private long delayMillis;
 
-    @KafkaListener(topics = "notification", groupId = "notification-group")
+    @KafkaListener(topics = "notifications", groupId = "notification-group")
     public void consume(RegistrationCreatedEvent event) throws InterruptedException {
         long elapsed = Duration.between(event.getCreatedAt(), LocalDateTime.now()).toMillis();
 
