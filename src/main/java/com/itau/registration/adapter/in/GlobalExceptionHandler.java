@@ -1,5 +1,8 @@
 package com.itau.registration.adapter.in;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,5 +23,23 @@ public class GlobalExceptionHandler {
                 errors.put("message", error.getDefaultMessage())
         );
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(
+            DataIntegrityViolationException ex) {
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", "Email already exists please perform an update");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errors);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(
+            Exception ex) {
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", ex.getMessage());
+        return ResponseEntity.internalServerError().body(errors);
     }
 }

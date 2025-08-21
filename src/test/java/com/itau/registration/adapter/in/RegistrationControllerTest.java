@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -64,30 +65,6 @@ class RegistrationControllerTest {
         assertThat(result.getBody().getMessage()).isEqualTo("Created successfully");
     }
 
-    @Test
-    @DisplayName("Should return 500 on generic exception during create")
-    void testCreateRegistrationException() {
-        when(registrationService.createRegistration(any())).thenThrow(new RuntimeException("Generic error"));
-
-        ResponseEntity<RegistrationResponse> result = registrationController.createRegistration(request);
-
-        assertThat(result.getStatusCode().value()).isEqualTo(500);
-        assertThat(result.getBody()).isNotNull();
-        assertThat(result.getBody().getMessage()).contains("Generic error");
-    }
-
-    @Test
-    @DisplayName("Should return 500 on DataAccessException during creation")
-    void testCreateRegistrationDataAccessException() {
-        when(registrationService.createRegistration(any())).thenThrow(new DataAccessException("DB is down") {});
-
-        ResponseEntity<RegistrationResponse> result = registrationController.createRegistration(request);
-
-        assertThat(result.getStatusCode().value()).isEqualTo(500);
-        assertThat(result.getBody()).isNotNull();
-        assertThat(result.getBody().getMessage()).contains("Database connection error");
-    }
-
     // ---------------------- GET ----------------------
     @Test
     @DisplayName("Should return registration by id when it's found")
@@ -111,20 +88,7 @@ class RegistrationControllerTest {
         ResponseEntity<RegistrationResponse> result = registrationController.getRegistration(99L);
 
         assertThat(result.getStatusCode().value()).isEqualTo(204);
-        assertThat(result.getBody()).isNotNull();
-        assertThat(result.getBody().getMessage()).isEqualTo("No content");
-    }
-
-    @Test
-    @DisplayName("Should return 500 on exception during get")
-    void testGetRegistrationException() {
-        when(registrationService.getRegistration(1L)).thenThrow(new RuntimeException("Generic error"));
-
-        ResponseEntity<RegistrationResponse> result = registrationController.getRegistration(1L);
-
-        assertThat(result.getStatusCode().value()).isEqualTo(500);
-        assertThat(result.getBody()).isNotNull();
-        assertThat(result.getBody().getMessage()).contains("Generic error");
+        assertThat(result.getBody()).isNull();
     }
 
     // ---------------------- LIST ----------------------
@@ -157,15 +121,6 @@ class RegistrationControllerTest {
         assertThat(result.getBody().get(0).getMessage()).isEqualTo("No registration found");
     }
 
-    @Test
-    @DisplayName("Should return 500 on exception during list")
-    void testListRegistrationsException() {
-        when(registrationService.getAllRegistrations()).thenThrow(new RuntimeException("Generic error"));
-
-        ResponseEntity<List<RegistrationResponse>> result = registrationController.listAllRegistrations();
-
-        assertThat(result.getStatusCode().value()).isEqualTo(500);
-    }
 
     // ---------------------- UPDATE ----------------------
     @Test
@@ -194,18 +149,6 @@ class RegistrationControllerTest {
         assertThat(result.getBody().getMessage()).isEqualTo("No content");
     }
 
-    @Test
-    @DisplayName("Should return 500 on exception during update")
-    void testUpdateRegistrationException() {
-        when(registrationService.updateRegistration(eq(1L), any())).thenThrow(new RuntimeException("Generic error"));
-
-        ResponseEntity<RegistrationResponse> result = registrationController.updateRegistration(1L, request);
-
-        assertThat(result.getStatusCode().value()).isEqualTo(500);
-        Assertions.assertNotNull(result.getBody());
-        assertThat(result.getBody().getMessage()).contains("Generic error");
-    }
-
     // ---------------------- DELETE ----------------------
     @Test
     @DisplayName("Should delete registration successfully")
@@ -229,17 +172,5 @@ class RegistrationControllerTest {
         assertThat(result.getStatusCode().value()).isEqualTo(204);
         Assertions.assertNotNull(result.getBody());
         assertThat(result.getBody().getMessage()).isEqualTo("No content");
-    }
-
-    @Test
-    @DisplayName("Should return 500 on exception during delete")
-    void testDeleteRegistrationException() {
-        when(registrationService.deleteRegistration(1L)).thenThrow(new RuntimeException("Generic error"));
-
-        ResponseEntity<RegistrationResponse> result = registrationController.deleteRegistration(1L);
-
-        assertThat(result.getStatusCode().value()).isEqualTo(500);
-        Assertions.assertNotNull(result.getBody());
-        assertThat(result.getBody().getMessage()).contains("Generic error");
     }
 }
